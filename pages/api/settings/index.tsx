@@ -8,7 +8,7 @@ type Data = {
   sync_calendar: boolean,
   timezone: string,
   // what else should be in settings?
-} | string; // string used for errors
+} | string;
 
 export default (req: NextApiRequest, res: NextApiResponse<Data>) => {
   // todo: authentication
@@ -35,5 +35,10 @@ function getSettings(req: NextApiRequest, res: NextApiResponse<Data>) {
 function postSettings(req: NextApiRequest, res: NextApiResponse<Data>) {
   const newSettings: Data = req.body;
   // todo: send to database?
-  console.log(newSettings);
+  if (typeof newSettings === "string") {
+    res.status(400).send("invalid data");
+  } else {
+    console.log(newSettings.note_auto_sharing, newSettings.local_storage);
+    res.status(200).send("ok");
+  }
 }
