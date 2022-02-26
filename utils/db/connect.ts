@@ -4,10 +4,10 @@
  * Based on example from: https://github.com/vercel/next.js/blob/canary/examples/with-mongodb/lib/mongodb.js
  */
 
-import { MongoClient } from "mongodb";
+import { MongoClient, MongoClientOptions } from "mongodb";
 
 const uri = process.env.MONGODB_URI;
-const options = {};
+const options: MongoClientOptions = {};
 
 let client: MongoClient;
 let clientPromise: Promise<MongoClient>;
