@@ -1,5 +1,5 @@
 /**
- * Handles Creation and (in-development) listing of all classes
+ * Handles Creation and (while in development, ) listing of all classes
  *
  * Created by Aubin C. Spitzer (@aubincspitzer) on 02/28/2022
  */
@@ -9,6 +9,7 @@ import { NextApiRequest, NextApiResponse } from "next";
 import { getSession } from "next-auth/react";
 import { ResponseData } from "../../../../types/api/ResponseData.type";
 import { Class } from "../../../../types/db/class.type";
+import apiLogger, { ApiMsg } from "../../../../utils/api/Logger";
 import clientPromise from "../../../../utils/db/connect";
 
 export default async (
@@ -28,6 +29,11 @@ export default async (
     switch (req.method) {
       case "GET":
         //TODO: Retrieve all classes from DB, and send on res object
+        const classes = await getClasses(db);
+        if (!classes)
+          return res.status(500).json({ error: "Failed to retrieve classes!" });
+
+        return res.status(200).json({ result: classes });
         break;
       case "POST":
         const newClass: Class = JSON.parse(req.body);
@@ -37,6 +43,22 @@ export default async (
     }
   } else res.status(404).json({ error: 404 });
 };
+
+//Retrieve all classes from database
+async function getClasses(db: Db): Promise<undefined | Array<any>> {
+  try {
+    const classes = await db.collection("classes").find().toArray();
+    return classes;
+  } catch (err) {
+    const apiMsg: ApiMsg = new ApiMsg(
+      "Failed to retrieve all classes from database!",
+      "MAJ",
+      "/api/v1/classes/"
+    );
+    apiLogger(apiMsg);
+    return;
+  }
+}
 
 async function createClass(db: Db, newClass: Class) {
   //TODO: Create class in Database here
