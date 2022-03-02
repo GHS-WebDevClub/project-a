@@ -34,7 +34,6 @@ export default async (
 
         return res.status(200).json({ result: courses });
       case "POST":
-        console.log("yo");
         const data = JSON.parse(req.body);
         const course = await createCourse(db, data);
         if (!course)
