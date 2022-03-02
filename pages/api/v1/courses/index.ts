@@ -67,6 +67,7 @@ async function createCourse(db: Db, data: any) {
   try {
     const course = new Course(data.displayName);
     await db.collection("courses").insertOne(course);
+    await db.collection("courses").createIndex({ displayName: "text" });
     return course;
   } catch (err) {
     console.log(err);
