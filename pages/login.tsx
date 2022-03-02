@@ -41,7 +41,7 @@ export default function Login() {
       <Logo />
       <Title>Sign In</Title>
       <ButtonContainer>
-        <Button onClick={() => signIn("google", { redirect: true })}>
+        <Button onClick={() => signIn("google")}>
           Google
         </Button>
         <Button onClick={() => signIn("discord")}>Discord</Button>

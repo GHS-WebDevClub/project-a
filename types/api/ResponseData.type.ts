@@ -1,4 +1,4 @@
 export type ResponseData = {
-    error?: string;
+    error?: string | number;
     result?: Object | Array<any> | string;
 }
