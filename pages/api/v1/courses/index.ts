@@ -10,6 +10,7 @@ import { getSession } from "next-auth/react";
 import { ResponseData } from "../../../../types/api/ResponseData.type";
 import { Course } from "../../../../types/db/course.type";
 import apiLogger, { ApiMsg } from "../../../../utils/api/Logger";
+import { getCourses } from "../../../../utils/api/v1/users/courses";
 import clientPromise from "../../../../utils/db/connect";
 
 export default async (
@@ -43,24 +44,6 @@ export default async (
     }
   } else res.status(404).json({ error: 404 });
 };
-
-//Retrieve all courses from database
-async function getCourses(db: Db): Promise<undefined | Array<any>> {
-  try {
-    const courses = await db.collection("courses").find().toArray();
-    return courses;
-  } catch (err) {
-    console.log(err);
-    apiLogger(
-      new ApiMsg(
-        "Failed to retrieve all courses from database!",
-        "MAJ",
-        "GET /api/v1/courses/"
-      )
-    );
-    return;
-  }
-}
 
 //Create req.body as new course in database
 async function createCourse(db: Db, data: any) {
