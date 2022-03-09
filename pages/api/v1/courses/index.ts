@@ -10,7 +10,7 @@ import { getSession } from "next-auth/react";
 import { ResponseData } from "../../../../types/api/ResponseData.type";
 import { Course } from "../../../../types/db/course.type";
 import apiLogger, { ApiMsg } from "../../../../utils/api/Logger";
-import { getCourses } from "../../../../utils/api/v1/users/courses";
+import { getCourses } from "../../../../utils/api/v1/courses";
 import clientPromise from "../../../../utils/db/connect";
 
 export default async (

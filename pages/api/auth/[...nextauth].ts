@@ -29,12 +29,19 @@ export default NextAuth({
     }),
     DiscordProvider({
       clientId: process.env.DISCORD_CLIENT_ID,
-      clientSecret: process.env.DISCORD_CLIENT_SECRET
-    })
+      clientSecret: process.env.DISCORD_CLIENT_SECRET,
+    }),
     // ...add more providers here
   ],
   //Override default, auto-generated auth pages
   pages: {
-    signIn: "/login"
-  }
+    signIn: "/login",
+  },
+  callbacks: {
+    async session({ session, token, user }) {
+
+      session.user._id = user.id;
+      return session;
+    },
+  },
 });
