@@ -5,10 +5,12 @@ export type UserObject = {
     username: string;
     joinedAt: string;
     lastLoggedAt: string;
-    profile: {
-        name: string;
-        email?: string;
-        phone?: string;
-        image?: string;
-    }
+    profile: UserSettings;
+}
+
+export type UserSettings = {
+    name: string;
+    email?: string;
+    phone?: string;
+    image?: string;
 }
