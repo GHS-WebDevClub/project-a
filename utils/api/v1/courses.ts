@@ -25,6 +25,26 @@ export async function getCourses(db?: Db): Promise<undefined | Array<any>> {
   }
 }
 
+export async function getCourseByName(displayName: string,db?: Db): Promise<undefined | any> {
+  try {
+    const collection = db
+      ? db.collection("courses")
+      : (await clientPromise).db().collection("courses");
+    const course = collection.findOne({displayName: displayName});
+    return course;
+  } catch (err) {
+    console.log(err);
+    apiLogger(
+      new ApiMsg(
+        `Failed to retrieve the course '${displayName}' from the database!`,
+        "MAJ",
+        "GET /api/v1/courses/"
+      )
+    );
+    return;
+  }
+}
+
 export async function getCoursesByUsername(
   username: string,
   db?: Db

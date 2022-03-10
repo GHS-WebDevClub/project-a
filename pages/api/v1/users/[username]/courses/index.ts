@@ -38,6 +38,14 @@ export default async function (
       return res.status(200).json({ result: courses });
     case "POST":
       //Enroll a specific user in a class based on class ID
+      
+      
+
+
       break;
+      //for some reason, I get an error when I put a case for the DELETE method. 
+    //case "DELETE":
+      //Disenroll a user from a class based on class ID
+    //  break;
   }
 }
