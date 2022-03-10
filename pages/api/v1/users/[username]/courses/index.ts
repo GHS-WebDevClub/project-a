@@ -28,7 +28,6 @@ export default async function course(req: NextApiRequest, res: NextApiResponse<R
     }else {
         //Error for no known method
     }
-
 };
 
 async function getCourses(db: Db, username:string): Promise<undefined | Array<Course>> {
