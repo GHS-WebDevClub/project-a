@@ -1,55 +1,43 @@
-import type { NextApiRequest, NextApiResponse } from "next";
-import { ObjectId } from 'mongodb'
-import { Course } from '../../../../../../types/db/course.type'
+/**
+ * Returns Array<Course> containing courses for a specific member based on the username in URL
+ *
+ * Created by Aubin C. Spitzer (@aubincspitzer) on 03/08/2022
+ */
+
+import { NextApiRequest, NextApiResponse } from "next";
+import { getSession } from "next-auth/react";
+import { useRouter } from "next/router";
 import { ResponseData } from "../../../../../../types/api/ResponseData.type";
-import clientPromise from "../../../../../../utils/db/connect";
-import {Db} from 'mongodb'
-import apiLogger, {ApiMsg} from "../../../../../../utils/api/Logger";
-import { useRouter } from 'next/router'
-import courses from "../../../courses";
+import checkSessionUsername from "../../../../../../utils/api/v1/checkSessionUsername";
+import { getCoursesByUsername } from "../../../../../../utils/api/v1/courses";
 
-export default async function course(req: NextApiRequest, res: NextApiResponse<ResponseData>) {
-    if(req.method === 'GET') {
-        const db = (await clientPromise).db()
-        const router = useRouter()
-        const { username } = router.query
-        
-        if(typeof username != "string") return res.status(400).json({
-            error: "malformed request",
-        });
+export default async function (
+  req: NextApiRequest,
+  res: NextApiResponse<ResponseData>
+) {
+  if (!(req.method == "POST" || req.method == "GET"))
+    return res.status(404).json({ error: 404 });
 
-        //send info from MongoDB
-        var courseInfo = await getCourses(db, username)//get the course info from the database
+  switch (req.method) {
+    //Retrieve courses a member is currently enrolled in from database
+    case "GET":
+      //Get username from URL
+      const { username } = req.query;
 
-        res.status(200).json({ result: `courseInfo: ${courseInfo}` })
-    }else if(req.method === 'POST') {
+      if (typeof username !== "string")
+        return res.status(400).json({ error: "Malformed request!" });
 
-        //post new user to API
-    }else {
-        //Error for no known method
-    }
-};
+      //Check if session matches username in URL
+      const member = await checkSessionUsername(req, username);
+      if (!member) return res.status(403).json({ error: "Permission denied!" });
 
-async function getCourses(db: Db, username:string): Promise<undefined | Array<Course>> {
-
-    try {
-
-        const member = await db.collection("member").findOne({username: username})
-        
-        if(!member) return
-
-        return member.courses
-
-    } catch(err) {
-        console.log(err)
-        apiLogger(
-            new ApiMsg(
-                'Failed to retrieve user courses from the database!',
-                'MAJ',
-                'GET /user/[username]/courses'
-            )
-        )
-        return;
-    }
-    return undefined;
-} 
+      //Get courses for member, send them in API response
+      const courses = await getCoursesByUsername(username);
+      if (!courses)
+        return res.status(500).json({ error: "Internal server error!" });
+      return res.status(200).json({ result: courses });
+    case "POST":
+      //Enroll a specific user in a class based on class ID
+      break;
+  }
+}

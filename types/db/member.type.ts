@@ -1,50 +1,26 @@
 /**
- * Created by Aubin C. Spitzer (@aubincspitzer) on 02/28/2022
+ * Created by Aubin C. Spitzer (@aubincspitzer) on 03/07/2022
  *
- * Describes the data structure for classes (groups / places to organize notes)
- * All classes should have at least one teacher, identified by a string ID, they do not need to have an acct.
- * Verification for the forseeable future will be done manually and this will show who (of platform admin) verified and when.
- * slug used for URLs, no standardized format yet.
+ * Describes the data structure for members (users after completing post-auth registration)
+ *
  */
 
- import { ObjectId } from "mongodb";
- import { Teacher } from "./teacher.type";
- import { DateTime } from "luxon";
- import { Course } from "./course.type"
+import { DateTime } from "luxon";
+import { ObjectId } from "mongodb";
+import { ProfileType } from "./profile.type";
 
- export type courseVerificationType = {
-   verifiedAt?: string;
-   verifiedBy?: ObjectId;
- };
- 
- export class Member {
-   _id: ObjectId;
-   slug: string;
-   displayName: string;
-   teachers?: Array<ObjectId>;
-   verification: courseVerificationType;
-   createdAt: string;
-   lastModifiedAt: string;
-   courses: Array<Course>
- 
-   constructor(
-     displayName: string,
-     teachers?: Array<Teacher>,
-     verifiedBy?: ObjectId
-   ) {
-     this._id = new ObjectId();
-     this.displayName = displayName;
-     this.slug = displayName
-       .replace(/[^A-Za-z0-9_-]/g, "")
-       .replace(/\s+/g, "-")
-       .toLowerCase();
-     this.teachers = teachers?.map((teacher) => teacher._id);
-     this.courses = []
-     this.createdAt = DateTime.now().toISO();
-     this.lastModifiedAt = this.createdAt;
-     this.verification = verifiedBy
-       ? { verifiedAt: this.createdAt, verifiedBy: verifiedBy }
-       : {};
-   }
- }
- 
+export default class Member {
+  _id: ObjectId;
+  username: string;
+  courses: Array<ObjectId>;
+  joinedAt: string;
+  lastLoggedInAt?: string;
+  profile: ProfileType;
+  constructor(username: string, profile: ProfileType) {
+    this._id = new ObjectId();
+    this.username = username;
+    this.courses = [];
+    this.joinedAt = DateTime.now().toISO();
+    this.profile = profile;
+  }
+}
