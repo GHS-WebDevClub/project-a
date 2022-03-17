@@ -17,15 +17,12 @@ export default async (
 
   //If logged in, check if method is valid for this API path:
   if (req.method === "GET" || req.method === "POST") {
-    //const db = (await clientPromise)
 
     switch (req.method) {
       case "GET":
         const { username } = req.query;
-        /*if username exists in the users collection
-                        return contents of object with the matching name field 
-                    else return error*/
-        if (!(typeof username === "string"))
+
+        if (!(typeof username === "string")) //If the request is formatted incorrectly, throw error
           return res.status(400).json({ error: "Malformed request!" });
 
         const collection = (await clientPromise).db().collection("members");
@@ -33,9 +30,9 @@ export default async (
           { username: username },
           { projection: { username: 1, _id: 0 } }
         );
-        if (!member)
-          return res.status(500).json({ error: "Internal server error" });
-        return res.status(200).json({ result: member });
+        /*if (!member) //If nothing matches the request, throw an error
+          return res.status(200).json({ error: "Internal server error" });*/
+        return res.status(200).json({ result: member ? member : {}});
       case "POST":
         /*
         This API method would be called by the application after a user has filled out a displayname, email, and username.
