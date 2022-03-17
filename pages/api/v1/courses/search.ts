@@ -1,3 +1,9 @@
+/**
+ * Handles Creation and (while in development, ) listing of courses based on a URL search query.
+ *
+ * Created by Aubin C. Spitzer (@aubincspitzer) on 02/28/2022
+ */
+
 import { Collection, ObjectId } from "mongodb";
 import { NextApiRequest, NextApiResponse } from "next";
 import { ResponseData } from "../../../../types/api/ResponseData.type";
