@@ -5,7 +5,8 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "start": "next start"
+    "start": "next start",
+    "build-mobile": "next build && next export && npx cap sync"
   },
   "dependencies": {
     "@capacitor/android": "^3.4.3",
