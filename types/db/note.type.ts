@@ -16,15 +16,33 @@ export type NoteDetailsType = {
   dueAt?: string;
   timeToComplete?: number;
   personalPriorityScore?: number;
-  sharedWith?: Array<ObjectId>;
+  sharedWith?: Array<string>;
 };
 
 export type NoteMetaType = {
-  authorId: ObjectId;
+  author: string;
   courseId?: ObjectId;
   createdAt: string;
   lastModifiedAt: string;
+  completedAt?: string;
 };
+
+//Submitted from client
+export type NoteBodyType = {
+  title: string;
+  courseId?: string;
+  note?: string;
+  dueAt?: string;
+  timeToComplete?: number;
+  images?: Array<string>;
+  sharedWith?: Array<string>;
+};
+
+//Required for constructor, but not submitted by client.
+export interface NoteConstructorType extends NoteBodyType {
+  personalPriorityScore?: number;
+  author: string;
+}
 
 export default class Note {
   _id: ObjectId;
@@ -35,17 +53,17 @@ export default class Note {
   details: NoteDetailsType;
   meta: NoteMetaType;
 
-  constructor(
-    title: string,
-    authorId: ObjectId,
-    courseId?: ObjectId,
-    note?: string,
-    dueAt?: string,
-    timeToComplete?: number,
-    personalPriorityScore?: number,
-    images?: Array<string>,
-    sharedWith?: Array<ObjectId>
-  ) {
+  constructor({
+    title,
+    author,
+    courseId,
+    note,
+    dueAt,
+    timeToComplete,
+    personalPriorityScore,
+    images,
+    sharedWith,
+  }: NoteConstructorType) {
     this._id = new ObjectId();
     this.title = title;
     this.images = images;
@@ -58,10 +76,11 @@ export default class Note {
       sharedWith: sharedWith,
     }),
       (this.meta = {
-        authorId: authorId,
-        courseId: courseId,
+        author: author,
+        courseId: courseId ? new ObjectId(courseId) : undefined,
         createdAt: DateTime.now().toISO(),
         lastModifiedAt: DateTime.now().toISO(),
+        completedAt: undefined,
       });
   }
 }

@@ -12,6 +12,7 @@ declare module "next-auth" {
       phone: string;
       image: string;
       emailVerified?: boolean;
+      username?: string;
     };
   }
 }
