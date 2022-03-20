@@ -23,15 +23,15 @@ export default async function (
   req: NextApiRequest,
   res: NextApiResponse<ResponseData>
 ) {
+  if (!(req.method == "GET" || req.method == "POST"))
+    return res.status(405).json({ error: "Method not allowed" });
+
   //Check session
   const session = await getSession({ req });
   if (!session)
     return res
       .status(401)
       .json({ error: "You must be signed in to access this content." });
-
-  if (!(req.method == "GET" || req.method == "POST"))
-    return res.status(405).json({ error: "Method not allowed" });
 
   const db = (await clientPromise).db();
   const { username } = req.query;
