@@ -7,6 +7,7 @@
  * Created by Aubin C. Spitzer (@aubincspitzer) on 03/19/2022
  */
 
+import { Db, ObjectId } from "mongodb";
 import { NextApiRequest, NextApiResponse } from "next";
 import { getSession } from "next-auth/react";
 import { ResponseData } from "../../../../../../types/api/ResponseData.type";
@@ -38,9 +39,22 @@ export default async function (
       .status(403)
       .json({ error: "Access to this content is forbidden." });
 
-    switch(req.method) {
-        case "GET":
-        case "PATCH":
-        case "DELETE":
-    }
+  switch (req.method) {
+    case "GET":
+    case "PATCH":
+    case "DELETE":
+      const note = await deleteNote(db, noteId);
+      if (!note) return res.status(500).json({ error: "Failed to delete note!" })
+      return res.status(200).json({ result: note._id })
+  }
+}
+
+//Delete note based on ObjectID string
+async function deleteNote(db: Db, noteId: string) {
+  try {
+    const note = (await db.collection("notes").findOneAndDelete({ _id: new ObjectId(noteId) })).value;
+    return note;
+  } catch (err) {
+    console.log(err);
+  }
 }
