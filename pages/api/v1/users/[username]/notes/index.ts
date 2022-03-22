@@ -101,12 +101,9 @@ async function createNote(
   db: Db
 ): Promise<Note | undefined> {
   try {
-    //Add serverside information and assign new type
-    const data: NoteConstructorType = body as NoteConstructorType;
-    data.meta.author = username;
-    data.details.personalPriorityScore = 100;
+    const noteData = formatNoteData(body as NoteBodyType, username);
     //Create new Note using note class
-    const note = new Note(data);
+    const note = new Note(noteData as NoteConstructorType);
     //Insert new note to database
     await db.collection("notes").insertOne(note);
     return note;
@@ -114,4 +111,18 @@ async function createNote(
     //Handle errors including in, database, missing fields in req.body, class constructor, etc.
     console.log(err);
   }
+}
+
+function formatNoteData(data: NoteBodyType, username: string) {
+  //Add serverside information TODO: sanitization?
+  let noteData: any = {
+    ...data,
+  };
+  if (!noteData.meta) { noteData.meta = { author: username }; }
+  else noteData.meta.author = username;
+  if (data.details && data.details.dueAt) { //should be calc'd server-side with given info, if it's an assignment (for now placeholder: 100)
+    noteData.details.personalPriorityScore = 100;
+  } else if (!noteData.details) noteData.details = {};
+  console.log(noteData)
+  return noteData;
 }

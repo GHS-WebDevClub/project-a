@@ -7,6 +7,7 @@
  * Created by Aubin C. Spitzer (@aubincspitzer) on 03/19/2022
  */
 
+import { DateTime } from "luxon";
 import { Db, ObjectId } from "mongodb";
 import { NextApiRequest, NextApiResponse } from "next";
 import { getSession } from "next-auth/react";
@@ -87,27 +88,6 @@ async function updateNote(db: Db, noteId: string, noteBody: NoteBodyType) {
   }
 }
 
-//I hate this function with a passion, pls help me find another way
-async function createUpdate(note: NoteBodyType) {
-  let update: any = {
-    title: note.title,
-  };
-  if (note.details?.dueAt) {
-    update["details.dueAt"] = note.details.dueAt;
-    update["details.type"] = "assignment";
-  }
-  if (note.images) update.details.images = note.images;
-  if (note.note) update.details.note = note.note;
-  if (note.details?.sharedWith)
-    update.details.sharedWith = note.details.sharedWith;
-  if (note.details?.timeToComplete)
-    update.details.timeToComplete = note.details.timeToComplete;
-  if (note.meta?.courseId) update.meta.courseId = note.meta.courseId;
-
-  //FML why
-  return update;
-}
-
 //Delete note based on ObjectID string
 async function deleteNote(db: Db, noteId: string) {
   try {
@@ -117,3 +97,60 @@ async function deleteNote(db: Db, noteId: string) {
     console.log(err);
   }
 }
+
+//I hate this function with a passion, pls help me find another way
+//try for ... in
+async function createUpdate(note: NoteBodyType) {
+  try {
+    let update: any = {
+      title: note.title
+    }
+
+    let mods = 0;
+
+    //Due date set/updated
+    if (note.details?.dueAt) {
+      update["details.dueAt"] = note.details.dueAt;
+      update["details.type"] = "assignment";
+    }
+    //Due date removed
+    else if (note.details?.dueAt == null) {
+      update['details.dueAt'] = null;
+      update["details.type"] = "note";
+    }
+    //Images array updated
+    if (note.images &&
+      Array.isArray(note.images) &&
+      (typeof note.images[0] == "string" || note.images.length == 0)) {
+      update["details.images"] = note.images
+    };
+    //Note string updated
+    if (note.note && typeof note.note == "string") {
+      update["details.note"] = note.note
+    };
+    //Shared members array updated
+    if (note.details?.sharedWith &&
+      Array.isArray(note.details.sharedWith) &&
+      (typeof note.details.sharedWith[0] == "string" || note.details.sharedWith.length == 0)) {
+      update["details.sharedWith"] = note.details.sharedWith
+    };
+    //Time-to-complete updated
+    if (note.details?.timeToComplete &&
+      typeof note.details.timeToComplete == "number") {
+      update["details.timeToComplete"] = note.details.timeToComplete;
+    }
+    //Change assigned course
+    if (note.meta?.courseId &&
+      typeof note.meta.courseId == "string") {
+      update["meta.courseId"] = new ObjectId(note.meta.courseId);
+    }
+
+    //update time to reflect these changes
+    update["meta.lastModifiedAt"] = DateTime.now().toISO();
+
+    return update;
+  } catch (err) {
+    console.log(err);
+  }
+}
+

@@ -7,6 +7,7 @@
 
 import { DateTime } from "luxon";
 import { ObjectId } from "mongodb";
+
 import { ProfileType } from "./profile.type";
 
 export default class Member {

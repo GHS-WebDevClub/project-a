@@ -25,12 +25,12 @@ export async function getCourses(db?: Db): Promise<undefined | Array<any>> {
   }
 }
 
-export async function getCourseByName(displayName: string,db?: Db): Promise<undefined | any> {
+export async function getCourseByName(displayName: string, db?: Db): Promise<undefined | any> {
   try {
     const collection = db
       ? db.collection("courses")
       : (await clientPromise).db().collection("courses");
-    const course = collection.findOne({displayName: displayName});
+    const course = collection.findOne({ displayName: displayName });
     return course;
   } catch (err) {
     console.log(err);
@@ -49,15 +49,16 @@ export async function getCoursesByUsername(
   username: string,
   db?: Db
 ): Promise<undefined | Array<Course>> {
-  const collection = db
-    ? db.collection("courses")
-    : (await clientPromise).db().collection("courses");
+  const database = db
+    ? db
+    : (await clientPromise).db()
 
   try {
     //Get member document from DB
-    const member = await collection.findOne({ username: username });
+    const member = await database.collection("members").findOne({ username: username });
     //Get all courses matching IDs stored in the Member "courses" array
-    const courses = await collection
+
+    const courses = await database.collection("courses")
       .find({ _id: { $in: (member as Member).courses } })
       .toArray();
     return courses as Course[];
