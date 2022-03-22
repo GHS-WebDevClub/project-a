@@ -55,10 +55,10 @@ export default async function (
       return res.status(200).json({ result: note });
     }
     case "DELETE":
+      const note = await deleteNote(db, noteId);
+      if (!note) return res.status(500).json({ error: "Failed to delete note!" })
+      return res.status(200).json({ result: note._id })
   }
-
-  //Server did not handle the request above
-  return res.status(500).json({ error: "Internal Server Error" });
 }
 
 async function getNote(db: Db, noteId: string) {
@@ -106,4 +106,14 @@ async function createUpdate(note: NoteBodyType) {
 
   //FML why
   return update;
+}
+
+//Delete note based on ObjectID string
+async function deleteNote(db: Db, noteId: string) {
+  try {
+    const note = (await db.collection("notes").findOneAndDelete({ _id: new ObjectId(noteId) })).value;
+    return note;
+  } catch (err) {
+    console.log(err);
+  }
 }
