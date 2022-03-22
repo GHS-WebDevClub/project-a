@@ -11,7 +11,7 @@ import { Db, ObjectId } from "mongodb";
 import { NextApiRequest, NextApiResponse } from "next";
 import { getSession } from "next-auth/react";
 import { ResponseData } from "../../../../../../types/api/ResponseData.type";
-import { NoteBodyType } from "../../../../../../types/db/note.type";
+import Note, { NoteBodyType } from "../../../../../../types/db/note.type";
 import checkSessionUsername from "../../../../../../utils/api/v1/checkSessionUsername";
 import clientPromise from "../../../../../../utils/db/connect";
 
@@ -41,13 +41,19 @@ export default async function (
       .json({ error: "Access to this content is forbidden." });
 
   switch (req.method) {
-    case "GET":
+    case "GET": {
       const note = await getNote(db, noteId);
-      if (!note) return res.status(404).json({ error: "Note not found!" });
+      if (!note)
+        return res.status(500).json({ error: "Error retrieving note!" });
       return res.status(200).json({ result: note });
-    case "PATCH":
+    }
+    case "PATCH": {
       const body = req.body as NoteBodyType;
-      
+      const note = await updateNote(db, noteId, body);
+      if (!note) return res.status(500).json({ error: "Error updating note!" });
+
+      return res.status(200).json({ result: note });
+    }
     case "DELETE":
   }
 
@@ -61,4 +67,43 @@ async function getNote(db: Db, noteId: string) {
   } catch (err) {
     console.log(err);
   }
+}
+
+async function updateNote(db: Db, noteId: string, noteBody: NoteBodyType) {
+  try {
+    const update = await createUpdate(noteBody);
+
+    const note = await db
+      .collection("notes")
+      .findOneAndUpdate(
+        { _id: new ObjectId(noteId) },
+        { $set: { ...update } },
+        { returnDocument: "after" }
+      );
+
+    return note.value;
+  } catch (err) {
+    console.log(err);
+  }
+}
+
+//I hate this function with a passion, pls help me find another way
+async function createUpdate(note: NoteBodyType) {
+  let update: any = {
+    title: note.title,
+  };
+  if (note.details?.dueAt) {
+    update["details.dueAt"] = note.details.dueAt;
+    update["details.type"] = "assignment";
+  }
+  if (note.images) update.details.images = note.images;
+  if (note.note) update.details.note = note.note;
+  if (note.details?.sharedWith)
+    update.details.sharedWith = note.details.sharedWith;
+  if (note.details?.timeToComplete)
+    update.details.timeToComplete = note.details.timeToComplete;
+  if (note.meta?.courseId) update.meta.courseId = note.meta.courseId;
+
+  //FML why
+  return update;
 }

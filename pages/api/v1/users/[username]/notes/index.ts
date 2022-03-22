@@ -102,11 +102,9 @@ async function createNote(
 ): Promise<Note | undefined> {
   try {
     //Add serverside information and assign new type
-    const data: NoteConstructorType = {
-      ...body,
-      author: username,
-      personalPriorityScore: 100,
-    };
+    const data: NoteConstructorType = body as NoteConstructorType;
+    data.meta.author = username;
+    data.details.personalPriorityScore = 100;
     //Create new Note using note class
     const note = new Note(data);
     //Insert new note to database
