@@ -25,9 +25,13 @@ async function getSettings(req: NextApiRequest, res: NextApiResponse<ResponseDat
     const user = await db.collection("members").findOne(
         { username: username }
       );
-    const prof = (user as Member).profile;
+    if (user) {
+      const prof = (user as Member).profile;
 
-    res.status(200).send({result: prof});
+      res.status(200).send({result: prof});
+    } else {
+      res.status(404).send({error: `user '${username}' not found!`});
+    }
   } catch (err) {
     console.log(err);
     res.status(500).send({error: "internal server error!"});
