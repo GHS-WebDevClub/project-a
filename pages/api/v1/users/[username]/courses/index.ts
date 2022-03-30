@@ -2,6 +2,9 @@
  * Returns Array<Course> containing courses for a specific member based on the username in URL
  *
  * Created by Aubin C. Spitzer (@aubincspitzer) on 03/08/2022
+ * 
+ * Based on:
+ * GET /users/<username>/courses - returns array of user's classes (DONE aubin)
  */
 
 import { NextApiRequest, NextApiResponse } from "next";
@@ -15,29 +18,36 @@ export default async function (
   req: NextApiRequest,
   res: NextApiResponse<ResponseData>
 ) {
-  if (!(req.method == "POST" || req.method == "GET"))
-    return res.status(404).json({ error: 404 });
+  if (req.method !== "GET")
+    return res.status(405).json({ error: "Method not allowed" });
 
+  //Get username from URL
+  const { username } = req.query;
+
+  if (typeof username !== "string")
+    return res.status(400).json({ error: 400 });
+
+  //Check session
+  const session = await getSession({ req });
+  if (!session)
+    return res
+      .status(401)
+      .json({ error: "You must be signed in to access this content." });
+
+  if (!(await checkSessionUsername(req, username, undefined, session)))
+    //We can't have this check in production (too many DB requests per one API request), username should be stored in session eventually (WIP)
+    return res
+      .status(403)
+      .json({ error: "Access to this content is forbidden." });
+
+  //To allow adding of more methods later
   switch (req.method) {
     //Retrieve courses a member is currently enrolled in from database
     case "GET":
-      //Get username from URL
-      const { username } = req.query;
-
-      if (typeof username !== "string")
-        return res.status(400).json({ error: "Malformed request!" });
-
-      //Check if session matches username in URL
-      const member = await checkSessionUsername(req, username);
-      if (!member) return res.status(403).json({ error: "Permission denied!" });
-
-      //Get courses for member, send them in API response
+      //Get courses for member from DB
       const courses = await getCoursesByUsername(username);
       if (!courses)
         return res.status(500).json({ error: "Internal server error!" });
       return res.status(200).json({ result: courses });
-    case "POST":
-      //Enroll a specific user in a class based on class ID
-      break;
   }
 }

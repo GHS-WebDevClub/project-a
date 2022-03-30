@@ -4,7 +4,7 @@ import Image from "next/image";
 export default function Logo() {
   return (
     <LogoSVG>
-      <Image src="/Logo.svg" alt="Logo" layout="fill" />
+      <img src="/Logo.svg" alt="Logo" />
     </LogoSVG>
   );
 }
