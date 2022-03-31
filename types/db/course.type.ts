@@ -44,3 +44,10 @@ export class Course {
       : {};
   }
 }
+
+export type SearchCourseResultType = {
+  id: string;
+  displayName: string;
+  isVerified: boolean;
+  primaryTeacher?: string;
+};

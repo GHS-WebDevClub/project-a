@@ -2,7 +2,7 @@
  * Returns Array<Course> containing courses for a specific member based on the username in URL
  *
  * Created by Aubin C. Spitzer (@aubincspitzer) on 03/08/2022
- * 
+ *
  * Based on:
  * GET /users/<username>/courses - returns array of user's classes (DONE aubin)
  */
@@ -10,13 +10,14 @@
 import { NextApiRequest, NextApiResponse } from "next";
 import { getSession } from "next-auth/react";
 import { useRouter } from "next/router";
-import { ResponseData } from "../../../../../../types/api/ResponseData.type";
+import { ResponseDataT } from "../../../../../../types/api/ResponseData.type";
+import { Course } from "../../../../../../types/db/course.type";
 import checkSessionUsername from "../../../../../../utils/api/v1/checkSessionUsername";
 import { getCoursesByUsername } from "../../../../../../utils/api/v1/courses";
 
 export default async function (
   req: NextApiRequest,
-  res: NextApiResponse<ResponseData>
+  res: NextApiResponse<ResponseDataT<Array<Course>>>
 ) {
   if (req.method !== "GET")
     return res.status(405).json({ error: "Method not allowed" });
@@ -24,8 +25,7 @@ export default async function (
   //Get username from URL
   const { username } = req.query;
 
-  if (typeof username !== "string")
-    return res.status(400).json({ error: 400 });
+  if (typeof username !== "string") return res.status(400).json({ error: 400 });
 
   //Check session
   const session = await getSession({ req });

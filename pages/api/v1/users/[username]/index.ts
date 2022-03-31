@@ -5,7 +5,7 @@
  */
 
 import type { NextApiRequest, NextApiResponse } from "next";
-import type { ResponseData } from "../../../../../types/api/ResponseData.type";
+import type { ResponseDataT } from "../../../../../types/api/ResponseData.type";
 import type { UserObject } from "../../../../../types/api/UserObject.type";
 import { getSession } from "next-auth/react";
 import { Db } from "mongodb";
@@ -14,7 +14,7 @@ import Member from "../../../../../types/db/member.type";
 
 export default async (
     req: NextApiRequest,
-    res: NextApiResponse<ResponseData>
+    res: NextApiResponse<ResponseDataT<string | Object>>
 ) => {
     //Validate session
     if (!(await getSession({ req })))

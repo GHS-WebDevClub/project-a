@@ -11,14 +11,14 @@ import { DateTime } from "luxon";
 import { Db, ObjectId } from "mongodb";
 import { NextApiRequest, NextApiResponse } from "next";
 import { getSession } from "next-auth/react";
-import { ResponseData } from "../../../../../../types/api/ResponseData.type";
+import { ResponseDataT } from "../../../../../../types/api/ResponseData.type";
 import Note, { NoteBodyType } from "../../../../../../types/db/note.type";
 import checkSessionUsername from "../../../../../../utils/api/v1/checkSessionUsername";
 import clientPromise from "../../../../../../utils/db/connect";
 
 export default async function (
   req: NextApiRequest,
-  res: NextApiResponse<ResponseData>
+  res: NextApiResponse<ResponseDataT<Note | ObjectId>>
 ) {
   if (!(req.method == "GET" || req.method == "PATCH" || req.method == "DELETE"))
     return res.status(405).json({ error: "Method not allowed" });
@@ -46,14 +46,14 @@ export default async function (
       const note = await getNote(db, noteId);
       if (!note)
         return res.status(500).json({ error: "Error retrieving note!" });
-      return res.status(200).json({ result: note });
+      return res.status(200).json({ result: note as Note });
     }
     case "PATCH": {
       const body = req.body as NoteBodyType;
       const note = await updateNote(db, noteId, body);
       if (!note) return res.status(500).json({ error: "Error updating note!" });
 
-      return res.status(200).json({ result: note });
+      return res.status(200).json({ result: note as Note });
     }
     case "DELETE":
       const note = await deleteNote(db, noteId);
@@ -99,14 +99,12 @@ async function deleteNote(db: Db, noteId: string) {
 }
 
 //I hate this function with a passion, pls help me find another way
-//try for ... in
+//NTS: try for ... in
 async function createUpdate(note: NoteBodyType) {
   try {
     let update: any = {
       title: note.title
     }
-
-    let mods = 0;
 
     //Due date set/updated
     if (note.details?.dueAt) {

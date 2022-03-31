@@ -6,15 +6,15 @@
 
 import { Collection, ObjectId } from "mongodb";
 import { NextApiRequest, NextApiResponse } from "next";
-import { ResponseData } from "../../../../types/api/ResponseData.type";
-import { Course } from "../../../../types/db/course.type";
+import { ResponseDataT } from "../../../../types/api/ResponseData.type";
+import { Course, SearchCourseResultType } from "../../../../types/db/course.type";
 import { Teacher } from "../../../../types/db/teacher.type";
 import apiLogger, { ApiMsg } from "../../../../utils/api/Logger";
 import clientPromise from "../../../../utils/db/connect";
 
 export default async function Search(
   req: NextApiRequest,
-  res: NextApiResponse<ResponseData>
+  res: NextApiResponse<ResponseDataT<Array<SearchCourseResultType>>>
 ) {
   if (req.method === "GET") {
     const { q } = req.query;
@@ -26,13 +26,6 @@ export default async function Search(
     res.status(200).json({ result: searchResults });
   } else res.status(404).json({ error: "404 not found" });
 }
-
-export type SearchCourseResultType = {
-  id: string;
-  displayName: string;
-  isVerified: boolean;
-  primaryTeacher?: string;
-};
 
 async function getCourses(
   query: string

@@ -8,5 +8,5 @@ export type ResponseData = {
 };
 
 export type ResponseDataT<T> = 
-    {error?: string | 500 | 401 | 404 | 403 | 405 | 400} |
-    {result?: T};
+    {error: string | 500 | 401 | 404 | 403 | 405 | 400} |
+    {result: T};
