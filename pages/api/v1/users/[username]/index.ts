@@ -6,7 +6,6 @@
 
 import type { NextApiRequest, NextApiResponse } from "next";
 import type { ResponseDataT } from "../../../../../types/api/ResponseData.type";
-import type { UserObject } from "../../../../../types/api/UserObject.type";
 import { getSession } from "next-auth/react";
 import { Db } from "mongodb";
 import clientPromise from "../../../../../utils/db/connect";
