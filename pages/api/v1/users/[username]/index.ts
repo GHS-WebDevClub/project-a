@@ -5,7 +5,7 @@
  */
 
 import type { NextApiRequest, NextApiResponse } from "next";
-import type { ResponseData } from "../../../../../types/api/ResponseData.type";
+import type { ResponseDataT } from "../../../../../types/api/ResponseData.type";
 import type { UserObject } from "../../../../../types/api/UserObject.type";
 import { getSession } from "next-auth/react";
 import { Db } from "mongodb";
@@ -14,7 +14,7 @@ import Member from "../../../../../types/db/member.type";
 
 export default async (
     req: NextApiRequest,
-    res: NextApiResponse<ResponseData>
+    res: NextApiResponse<ResponseDataT<string | Member | {}>>
 ) => {
     //Validate session
     if (!(await getSession({ req })))
@@ -41,14 +41,13 @@ export default async (
                     { username: username },
                     { projection: { _id: 0, profile: 1 } }
                 );
-                return res.status(200).json({ result: member ? member : {} });
+                return res.status(200).json({ result: member ? member as Member : {} });
             }
             case "POST":
                 {
                     const { username } = req.query;
 
-                    if (!(typeof username === "string"))
-                        //If the request is formatted incorrectly, throw error
+                    if (!(typeof username === "string")) //If the request is formatted incorrectly, throw error
                         return res
                             .status(400)
                             .json({ error: "Malformed request!" });
@@ -60,18 +59,11 @@ export default async (
                         { username: username },
                         { projection: { _id: 0, profile: 1 } })
                     if (!(member === null))  return res.status(500).json({ error: "User already exists!"}) //If you get a result back, the user already exists
-                    return res.status(200).json({result: `${req.query.username} is not a user that exists yet`})
-
+                    //return res.status(200).json({result: `${req.query.username} is not a user that exists yet`})
+                    //if (!()) {}
                 }
-                /*
-        This API method would be called by the application after a user has filled out a displayname, email, and username.
-        If the name or email exist already, this should be terminated.
-
-        if object exists in the users collection with name || email
-            throw error and terminate process (Already in use)
-        else create new object with params
-        */
-                break;
         }
     } else return res.status(404);
 };
+
+//type
