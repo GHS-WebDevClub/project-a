@@ -7,7 +7,7 @@
 import { Db } from "mongodb";
 import { NextApiRequest, NextApiResponse } from "next";
 import { getSession } from "next-auth/react";
-import { ResponseData } from "../../../../types/api/ResponseData.type";
+import { ResponseDataT } from "../../../../types/api/ResponseData.type";
 import { Course } from "../../../../types/db/course.type";
 import apiLogger, { ApiMsg } from "../../../../utils/api/Logger";
 import { getCourses } from "../../../../utils/api/v1/courses";
@@ -15,7 +15,7 @@ import clientPromise from "../../../../utils/db/connect";
 
 export default async (
   req: NextApiRequest,
-  res: NextApiResponse<ResponseData>
+  res: NextApiResponse<ResponseDataT<Array<Course>>>
 ) => {
   //Check session
   if (!(await getSession({ req })))

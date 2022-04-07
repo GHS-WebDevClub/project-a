@@ -5,13 +5,13 @@ import clientPromise from "../../db/connect";
 import apiLogger, { ApiMsg } from "../Logger";
 
 //Retrieve all courses from database
-export async function getCourses(db?: Db): Promise<undefined | Array<any>> {
+export async function getCourses(db?: Db): Promise<undefined | Array<Course>> {
   try {
     const collection = db
       ? db.collection("courses")
       : (await clientPromise).db().collection("courses");
     const courses = await collection.find().toArray();
-    return courses;
+    return courses as Array<Course>;
   } catch (err) {
     console.log(err);
     apiLogger(

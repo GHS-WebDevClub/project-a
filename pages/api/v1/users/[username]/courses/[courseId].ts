@@ -9,11 +9,11 @@
 import { Db, ObjectId } from "mongodb";
 import { NextApiRequest, NextApiResponse } from "next";
 import { getSession } from "next-auth/react";
-import { ResponseData } from "../../../../../../types/api/ResponseData.type";
+import { ResponseDataT } from "../../../../../../types/api/ResponseData.type";
 import checkSessionUsername from "../../../../../../utils/api/v1/checkSessionUsername";
 import clientPromise from "../../../../../../utils/db/connect";
 
-export default async function (req: NextApiRequest, res: NextApiResponse<ResponseData>) {
+export default async function (req: NextApiRequest, res: NextApiResponse<ResponseDataT<string>>) {
     if (!(req.method == "POST" || req.method == "DELETE")) return res.status(405).json({ error: "Method not allowed" });
 
     //Check session

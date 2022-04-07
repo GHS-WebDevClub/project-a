@@ -8,10 +8,10 @@
  * POST /users/<username>/notes - Submits a new note with data to server (TODO aubin)
  */
 
-import { Db } from "mongodb";
+import { Db, ObjectId } from "mongodb";
 import { NextApiRequest, NextApiResponse } from "next";
 import { getSession } from "next-auth/react";
-import { ResponseData } from "../../../../../../types/api/ResponseData.type";
+import { ResponseDataT } from "../../../../../../types/api/ResponseData.type";
 import Note, {
   NoteBodyType,
   NoteConstructorType,
@@ -21,7 +21,7 @@ import clientPromise from "../../../../../../utils/db/connect";
 
 export default async function (
   req: NextApiRequest,
-  res: NextApiResponse<ResponseData>
+  res: NextApiResponse<ResponseDataT<Array<Note> | ObjectId>>
 ) {
   if (!(req.method == "GET" || req.method == "POST"))
     return res.status(405).json({ error: "Method not allowed" });
@@ -54,7 +54,7 @@ export default async function (
           .status(500)
           .json({ error: `Error retrieving ${username}'s notes!` });
 
-      res.status(200).json({ result: notes });
+      res.status(200).json({ result: notes as Array<Note> });
 
       break;
     case "POST":
@@ -66,7 +66,7 @@ export default async function (
       if (!note)
         return res.status(500).json({ error: "Internal Server Error" });
 
-      res.status(200).json({ result: "OK 200" });
+      res.status(200).json({ result: note._id });
       break;
   }
 }

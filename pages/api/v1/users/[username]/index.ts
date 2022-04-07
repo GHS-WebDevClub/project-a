@@ -6,7 +6,7 @@
 
 import type { NextApiRequest, NextApiResponse } from "next";
 import type { ResponseDataT } from "../../../../../types/api/ResponseData.type";
-import type { UserObject } from "../../../../../types/api/UserObject.type";
+//import type { UserObject } from "../../../../../types/api/UserObject.type";
 import { getSession } from "next-auth/react";
 import { Db } from "mongodb";
 import clientPromise from "../../../../../utils/db/connect";
@@ -60,10 +60,15 @@ export default async (
                         { projection: { _id: 0, profile: 1 } })
                     if (!(member === null))  return res.status(500).json({ error: "User already exists!"}) //If you get a result back, the user already exists
                     //return res.status(200).json({result: `${req.query.username} is not a user that exists yet`})
-                    //if (!()) {}
+                    //if (!(req.body ===)) {}
                 }
         }
     } else return res.status(404);
 };
 
-//type
+type ValidUserCreationObject = {
+    firstname: string,
+    lastname: string,
+    email: string,
+
+}
