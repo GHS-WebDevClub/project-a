@@ -1,6 +1,6 @@
 export type ProfileType = {
-  public: PublicProfile,
-  private: PrivateProfile,
+  public: PublicProfile;
+  private: PrivateProfile;
 };
 
 export type PublicProfile = {
@@ -12,3 +12,6 @@ export type PrivateProfile = {
   email?: string;
   phone?: string;
 };
+
+//"any" represents the type for uploaded images (temporary)
+export type ProfileSlugUpdateBody = string | any;

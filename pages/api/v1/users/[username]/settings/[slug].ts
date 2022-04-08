@@ -16,7 +16,7 @@ export default async (
 ) => {
   if (!(req.method == "PUT"))
     return res.status(405).json({ error: "Method not allowed" });
-    
+
   const session = await getSession({ req });
   if (!session)
     return res
@@ -26,8 +26,26 @@ export default async (
   const db = (await clientPromise).db();
   const { username, slug } = req.query;
 
-  if (typeof username !== "string" || typeof slug !== "string")
+  if (typeof username !== "string" || typeof slug !== "string" || req.body == null)
     return res.status(400).json({ error: 400 });
 
-  
+  const member = await updateSetting(slug, req.body)
 };
+
+async function updateSetting(key: string, value: any) {
+  switch (key) {
+    case "display-name": return await updateMember({ displayName: value })
+    case "phone": return await updateMember({ phone: value })
+    case "email": return await updateMember({ email: value })
+    case "image": return await updateMemberImage()
+    default: return false
+  }
+}
+
+async function updateMember(data: Object) {
+
+}
+
+async function updateMemberImage() {
+
+}
