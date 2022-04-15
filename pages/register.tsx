@@ -11,6 +11,7 @@ import { useRouter } from "next/router";
 import { useEffect } from "react";
 import Container from "../components/LoginFlow/Container";
 import SocialButtons from "../components/LoginFlow/SocialButtons";
+import RegisterForm from "../components/LoginFlow/RegisterForm";
 
 /**TODO
  * - Add Button components to design system, then re-incorporate. These buttons are placeholders.
@@ -40,11 +41,9 @@ export default function Login() {
   return (
     <Container>
       <Logo />
-      <Title>Sign In</Title>
-      <SocialButtons />
-      <Text>
-        Not convinced? <a href="#">Learn More.</a>
-      </Text>
+      <Title>Register</Title>
+      <p>We need some additional info from you.</p>
+      <RegisterForm />
     </Container>
   );
 }
@@ -52,7 +51,7 @@ export default function Login() {
 const Title = styled.h1`
   margin: 0 auto;
   width: fit-content;
-  color: #ffff;
+  color: #f2f2f7;
   margin-top: 5vh;
 `;
 
