@@ -1246,10 +1246,10 @@
   resolved "https://registry.yarnpkg.com/@emotion/weak-memoize/-/weak-memoize-0.2.5.tgz#8eed982e2ee6f7f4e44c253e12962980791efd46"
   integrity sha512-6U71C2Wp7r5XtFtQzYrW5iKFT67OixrSxjI4MptCHzdSVlgabczzqLe0ZSgnub/5Kp4hSbpDB1tMytZY9pwxxA==
 
-"@ghs-wdc/storybook@^0.1.21":
-  version "0.1.21"
-  resolved "https://registry.yarnpkg.com/@ghs-wdc/storybook/-/storybook-0.1.21.tgz#1fecb93d0403b0dbf7fddbb12c513e754f134d59"
-  integrity sha512-lmh/HofMzeb/KiwMql8DX6CARn9ny41pPoesYp0jqC3wln2lilPvBPkVjX8VEkvhLPBLNzicUP/QVto7MwUmsg==
+"@ghs-wdc/storybook@^0.1.23":
+  version "0.1.23"
+  resolved "https://registry.yarnpkg.com/@ghs-wdc/storybook/-/storybook-0.1.23.tgz#8bbc0fbd05899ccd3c85a3f147150267abbf520f"
+  integrity sha512-1S/UKyvxr5A+pHfsLgXSPJIZojFuQ404hHw/GmYmO+qeny/BM46Ia7B4Cchzaxaf3xrMGBk3jRN+g5ChSZsluw==
   dependencies:
     "@emotion/react" "^11.8.2"
     "@emotion/styled" "^11.8.1"

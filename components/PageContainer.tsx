@@ -5,7 +5,13 @@ export default styled.div`
   min-height: 100vh;
   padding: 2rem 0;
 
-  p {
+  p, label, legend {
     color: #cacaca;
+  }
+
+  fieldset {
+    outline: none;
+    border: none;
+    width: 100%;
   }
 `;

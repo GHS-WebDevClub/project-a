@@ -8,7 +8,7 @@
 import { TextInput, IconButton } from "@ghs-wdc/storybook";
 import styled from "styled-components";
 import React, { FormEvent, useEffect, useState } from "react";
-import { ResponseData } from "../../types/api/ResponseData.type";
+import { ResponseData, ResponseDataUni } from "../../types/api/ResponseData.type";
 
 type StateType = IIndexable & {
     uname?: string;
@@ -21,119 +21,123 @@ interface IIndexable {
     [key: string]: string;
 }
 
+/**
+ * @returns new Member's ObjectID as string
+ */
+type ApiResponse = ResponseDataUni<string>;
+
 export default function RegisterForm() {
-    const [formState, setFormState] = useState<StateType>({
+    const [formData, setFormData] = useState<StateType>({
         uname: "",
         fname: "",
         lname: "",
         phone: "",
     });
+    const [formErrors, setFormErrors] = useState<{ uname?: string, fname?: string, lname?: string, phone?: string }>();
+    const [formStatus, setFormStatus] = useState<"ready" | "loading" | "success" | "fail">("ready"); //NTS could add disabled state to status instead of sep. prop on IconButton
 
     function handleInputChange(e: FormEvent<HTMLInputElement>) {
         const target = e.currentTarget;
         const name = target.name;
-        let newValue = target.value;
+        const val = target.value;
 
-        //no change despite un-focus of input field
-        if (newValue == formState[name]) return;
+        if (val == "" && (name !== "phone")) return setFormErrors(prevState => ({ ...prevState, [name]: "This field is required." }));
+
+        if (val == formData[name]) return;
 
         //Create new object so that useState causes a re-render (without spreading into a new one, it doesn't)
-        const newState = { ...formState };
-
-        newState[name] = newValue;
-
-        if (newState.fname && newState.lname && !newState.uname) {
-            const uname = (newState.fname + newState.lname).toLowerCase();
-            newState.uname = uname;
-        }
-
-        setFormState(newState);
+        setFormData(prevState => ({ ...prevState, [name]: val }))
+        setFormErrors(prevState => ({ ...prevState, [name]: "" }))
     }
 
-    async function handleSubmit(animationCallback: () => void): Promise<boolean> {
-        const newMember = {
-            displayName: `${formState.fname} ${formState.lname}`,
-            uname: formState.uname,
-            phone: formState.phone,
-        };
+    async function handleSubmit() {
+        setFormStatus("loading");
 
         try {
 
+            const newMemberBody = {
+                displayName: `${formData.fname} ${formData.lname}`,
+                username: formData.uname,
+                phone: formData.phone,
+            };
+
             const res = await fetch("/api/v1/users", {
-                body: JSON.stringify(newMember), headers: {
+                body: JSON.stringify(newMemberBody), headers: {
                     "Content-Type": "application/json"
                 }, method: "POST"
             })
 
-
-            if (res.status !== 200) return false;
-
-            const data: ResponseData = await res.json();
-
-            if(data.result) return true;
-
-            return false;
-
+            setTimeout(() => {
+                res.ok ? setFormStatus("success") : setFormStatus("fail");
+            }, 1000);
         } catch (err) {
             console.log(err);
-            return false;
+            setFormStatus("fail");
         }
-
-        /**
-         * TODO:
-         * - Submittal of Data to api route
-         * - Discuss switching API route to POST /users instead of POST /users/<username>
-         * - Figure out how to use the animationCallback from IconButton
-         */
     }
 
     return (
         <Form
             action="/api/v1/users/"
             method="POST"
-            id="re<gister"
-            onSubmit={(e) => e.preventDefault()}
+            id="register"
+            onSubmit={(e) => { e.preventDefault(); return handleSubmit() }}
         >
-            <NameContainer>
-                {/**
-         * Using onBlur instead of onChange since React emits onInput events as onChange events.
-         * (This way I can still have vanilla onChange-like functionality)
-         */}
+            <fieldset>
+                <legend>Full Name</legend>
+                <NameContainer>
+                    <TextInput
+                        id="fname"
+                        name="fname"
+                        onBlur={handleInputChange}
+                        placeholder="First Name"
+                        error={formErrors?.fname ? true : false}
+                        required={true}
+                    />
+                    <TextInput
+                        id="lname"
+                        name="lname"
+                        onBlur={handleInputChange}
+                        placeholder="Last Name"
+                        error={formErrors?.lname ? true : false}
+                        required={true}
+                    />
+                </NameContainer>
+            </fieldset>
+            <fieldset>
+                <legend>Username</legend>
                 <TextInput
-                    id="fname"
-                    name="fname"
+                    id="uname"
+                    name="uname"
                     onBlur={handleInputChange}
-                    placeholder="First Name"
+                    placeholder={formData.uname ? formData.uname : "Username"}
+                    defaultValue={formData.uname}
+                    error={formErrors?.uname ? true : false}
+                    required={true}
+
                 />
+            </fieldset>
+            <fieldset>
+                <legend>Phone Number</legend>
                 <TextInput
-                    id="lname"
-                    name="lname"
+                    id="phone"
+                    name="phone"
+                    type="tel"
+                    pattern="^\+?\d{0,13}"
+                    minLength={10}
                     onBlur={handleInputChange}
-                    placeholder="Last Name"
+                    placeholder="Phone"
+                    error={formErrors?.phone ? true : false}
+
                 />
-            </NameContainer>
-            <TextInput
-                id="uname"
-                name="uname"
-                onBlur={handleInputChange}
-                placeholder={formState.uname ? formState.uname : "Username"}
-                defaultValue={formState.uname}
-            />
-            <TextInput
-                id="phone"
-                name="phone"
-                type="tel"
-                pattern="^\+?\d{0,13}"
-                minLength={10}
-                onBlur={handleInputChange}
-                placeholder="Phone"
-            />
+            </fieldset>
             <IconButton
                 primary
                 disabled={
-                    formState.fname && formState.lname && formState.uname ? false : true
+                    formData.fname && formData.lname && formData.uname ? false : true
                 }
-                action={handleSubmit}
+                status={formStatus}
+                animationCallback={async () => setFormStatus("ready")}
             />
         </Form>
     );
@@ -142,10 +146,16 @@ export default function RegisterForm() {
 const Form = styled.form`
   display: flex;
   flex-direction: column;
-  justify-content: space-evenly;
+  justify-content: space-between;
   align-items: center;
   width: fit-content;
   height: 20rem;
+  margin-top: 1rem;
+
+  label {
+      align-self: flex-start;
+      color: #f2f2f7;
+  }
 `;
 
 const NameContainer = styled.div`

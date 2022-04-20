@@ -8,7 +8,7 @@
     "start": "next start"
   },
   "dependencies": {
-    "@ghs-wdc/storybook": "^0.1.21",
+    "@ghs-wdc/storybook": "^0.1.23",
     "@next-auth/mongodb-adapter": "^1.0.1",
     "luxon": "^2.3.0",
     "mongodb": "^4.4.0",
