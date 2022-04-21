@@ -53,7 +53,7 @@ const Title = styled.h1`
   margin: 0 auto;
   width: fit-content;
   color: #ffff;
-  margin-top: 5vh;
+  margin-top: 2rem;
 `;
 
 const Text = styled.p`

@@ -46,8 +46,15 @@ export default function RegisterForm() {
         if (val == formData[name]) return;
 
         //Create new object so that useState causes a re-render (without spreading into a new one, it doesn't)
-        setFormData(prevState => ({ ...prevState, [name]: val }))
+        setFormData(prevState => ({ ...prevState, [name]: val, uname: getUsername() }))
         setFormErrors(prevState => ({ ...prevState, [name]: "" }))
+
+        function getUsername() {
+            if (formData.uname) return formData.uname;
+            if (formData.fname && name == "lname") return (formData.fname + val).toLowerCase();
+            if(name == "fname" && formData.lname) return (val + formData.lname).toLowerCase();
+            return "";
+        }
     }
 
     async function handleSubmit() {
@@ -150,7 +157,7 @@ const Form = styled.form`
   align-items: center;
   width: fit-content;
   height: 20rem;
-  margin-top: 1rem;
+  margin-top: 2rem;
 
   label {
       align-self: flex-start;

@@ -42,7 +42,7 @@ export default function Login() {
     <Container>
       <Logo />
       <Title>Register</Title>
-      <p>We need some additional info from you.</p>
+      <p>We need to get to know you a bit better</p>
       <RegisterForm />
     </Container>
   );
@@ -52,7 +52,7 @@ const Title = styled.h1`
   margin: 0 auto;
   width: fit-content;
   color: #f2f2f7;
-  margin-top: 5vh;
+  margin-top: 2rem;
 `;
 
 const Text = styled.p`
