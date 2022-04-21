@@ -8,7 +8,7 @@
 import { TextInput, IconButton } from "@ghs-wdc/storybook";
 import styled from "styled-components";
 import React, { FormEvent, useEffect, useState } from "react";
-import { ResponseData, ResponseDataUni } from "../../types/api/ResponseData.type";
+import {ResponseUni } from "../../types/api/ResponseData.type";
 
 type StateType = IIndexable & {
     uname?: string;
@@ -24,7 +24,7 @@ interface IIndexable {
 /**
  * @returns new Member's ObjectID as string
  */
-type ApiResponse = ResponseDataUni<string>;
+type ApiResponse = ResponseUni<string>;
 
 export default function RegisterForm() {
     const [formData, setFormData] = useState<StateType>({
