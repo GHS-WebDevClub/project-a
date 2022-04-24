@@ -6,30 +6,47 @@
 
 import { Collection, ObjectId } from "mongodb";
 import { NextApiRequest, NextApiResponse } from "next";
-import { ResponseDataT } from "../../../../types/api/ResponseData.type";
-import { Course, SearchCourseResultType } from "../../../../types/db/course.type";
+import { ApiError } from "../../../../types/api/ApiError/ApiError.type";
+import { ResponseUni } from "../../../../types/api/ResponseData.type";
+import {
+  Course,
+  SearchCourseResultType,
+} from "../../../../types/db/course.type";
 import { Teacher } from "../../../../types/db/teacher.type";
 import apiLogger, { ApiMsg } from "../../../../utils/api/Logger";
 import clientPromise from "../../../../utils/db/connect";
 
 export default async function Search(
   req: NextApiRequest,
-  res: NextApiResponse<ResponseDataT<Array<SearchCourseResultType>>>
+  res: NextApiResponse<ResponseUni<Array<SearchCourseResultType>>>
 ) {
-  if (req.method === "GET") {
-    const { q } = req.query;
-    if (!(typeof q === "string"))
-      return res.status(400).json({ error: "Malformed request" });
-    const searchResults = await getCourses(q);
-    if (!searchResults)
-      return res.status(500).json({ error: "Failed to retrieve courses." });
-    res.status(200).json({ result: searchResults });
-  } else res.status(404).json({ error: "404 not found" });
+  //Check Method
+  if (req.method !== "GET")
+    return res
+      .status(405)
+      .json(new ResponseUni([ApiError.fromCode("req-001")], req.url));
+
+  //Check search query
+  const { q } = req.query;
+  if (typeof q !== "string")
+    return res
+      .status(400)
+      .json(new ResponseUni([ApiError.fromCode("req-002")], req.url));
+
+  //Check search results
+  const searchResults = await getCourses(q);
+  if (!searchResults)
+    return res
+      .status(500)
+      .json(new ResponseUni([ApiError.fromCode("srv-001")], req.url));
+
+  //Send results
+  return res.status(200).json(new ResponseUni([], req.url, searchResults));
 }
 
 async function getCourses(
   query: string
-): Promise<Array<SearchCourseResultType> | undefined> {
+): Promise<Array<SearchCourseResultType> | null> {
   const searchQuery = { $text: { $search: query } };
   try {
     const collection = (await clientPromise).db().collection("courses");
@@ -60,7 +77,7 @@ async function getCourses(
         "GET /api/v1/courses/search"
       )
     );
-    return;
+    return null;
   }
 }
 

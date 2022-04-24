@@ -10,6 +10,7 @@ import styled from "styled-components";
 import React, { FormEvent, useEffect, useState } from "react";
 import { ResponseUni } from "../../types/api/ResponseData.type";
 import { RegistrationBodyType } from "../../pages/api/v1/users";
+import { useRouter } from "next/router";
 
 type StateType = IIndexable & {
   uname?: string;
@@ -43,6 +44,8 @@ export default function RegisterForm() {
     }>();
   const [formStatus, setFormStatus] =
     useState<"ready" | "loading" | "success" | "fail">("ready"); //NTS could add disabled state to status instead of sep. prop on IconButton
+
+  const router = useRouter();
 
   function handleInputChange(e: FormEvent<HTMLInputElement>) {
     const target = e.currentTarget;
@@ -185,7 +188,9 @@ export default function RegisterForm() {
           formData.fname && formData.lname && formData.uname ? false : true
         }
         status={formStatus}
-        animationCallback={async () => setFormStatus("ready")}
+        animationCallback={async () => {
+          formStatus == "success" ? router.push("/") : setFormStatus("ready");
+        }}
       />
     </Form>
   );

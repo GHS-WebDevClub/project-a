@@ -35,11 +35,11 @@ export default NextAuth({
   ],
   //Override default, auto-generated auth pages
   pages: {
-    signIn: "/login",
+    signIn: "/auth/login",
+    newUser: "/auth/register",
   },
   callbacks: {
     async session({ session, token, user }) {
-
       session.user._id = user.id;
       return session;
     },

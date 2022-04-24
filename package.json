@@ -10,7 +10,7 @@
   "dependencies": {
     "@ghs-wdc/storybook": "^0.1.23",
     "@next-auth/mongodb-adapter": "^1.0.1",
-    "libphonenumber-js": "^1.9.51",
+    "libphonenumber-js": "^1.9.52",
     "luxon": "^2.3.0",
     "mongodb": "^4.4.0",
     "next": "12.0.8",

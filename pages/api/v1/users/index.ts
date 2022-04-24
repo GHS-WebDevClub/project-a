@@ -9,153 +9,116 @@
  */
 
 import parsePhoneNumber from "libphonenumber-js";
+import { Collection } from "mongodb";
 import { NextApiRequest, NextApiResponse } from "next";
 import { getSession } from "next-auth/react";
-import { ApiError, ResponseUni } from "../../../../types/api/ResponseData.type";
+import { ApiError } from "../../../../types/api/ApiError/ApiError.type";
+import { ResponseUni } from "../../../../types/api/ResponseData.type";
 import Member from "../../../../types/db/member.type";
-import { ProfileType } from "../../../../types/db/profile.type";
 import clientPromise from "../../../../utils/db/connect";
 
 export interface RegistrationBodyType {
-    uname: string;
-    dname: string;
-    phone?: string;
+  uname: string;
+  dname: string;
+  phone?: string;
 }
 
 export default async (
-    req: NextApiRequest,
-    res: NextApiResponse<ResponseUni<string>>
+  req: NextApiRequest,
+  res: NextApiResponse<ResponseUni<string>>
 ) => {
-    //Check session
-    const session = await getSession({ req });
+  //Check session
+  const session = await getSession({ req });
+  if (!session)
+    return res
+      .status(401)
+      .json(new ResponseUni([ApiError.fromCode("auth-001")], req.url));
 
-    if (!session)
-        return res
-            .status(401)
-            .json(
-                new ResponseUni(
-                    [
-                        new ApiError(
-                            "auth-001",
-                            "You must be signed in to access this content.",
-                            "401 Unauthorized - Missing Session"
-                        ),
-                    ],
-                    req.url
-                )
-            );
+  //Check Method
+  if (!(req.method == "POST"))
+    return res
+      .status(405)
+      .json(new ResponseUni([ApiError.fromCode("req-001")], req.url));
 
-    //Check Method
-    if (!(req.method == "POST"))
-        return res
-            .status(404)
-            .json(
-                new ResponseUni(
-                    [
-                        new ApiError(
-                            "req-001",
-                            `400 Bad Request`,
-                            `400 Bad Request - Invalid Method "${req.method}"`
-                        ),
-                    ],
-                    req.url
-                )
-            );
+  const data = await validateFormData(req.body);
 
-    try {
-        const data = await validateFormData(req.body);
+  if (typeof data == "string")
+    return res
+      .status(200)
+      .json(new ResponseUni([new ApiError("req-003", data)], req.url));
 
-        if (typeof data == "string")
-            return res
-                .status(200)
-                .json(new ResponseUni([new ApiError("req-003", data)], req.url));
+  try {
+    const newMember = new Member(
+      data.uname,
+      {
+        public: { displayName: data?.dname },
+        private: { phone: data.phone, email: session.user.email },
+      },
+      session.user._id
+    );
 
-        const newMember = new Member(
-            data.uname,
-            {
-                public: { displayName: data?.dname },
-                private: { phone: data.phone, email: session.user.email },
-            },
-            session.user._id
-        );
+    const members = (await clientPromise).db().collection("members");
 
-        const members = (await clientPromise).db().collection("members");
+    //Check member doesn't already exist
+    if (await memberExists(session.user._id, newMember.username, members))
+      return res
+        .status(200)
+        .json(new ResponseUni([ApiError.fromCode("dat-002")], req.url));
 
-        const existingMemberByUsername = await members.findOne({
-            username: newMember.username,
-        });
-
-        const existingMemberById = await members.findOne({ _id: session.user._id });
-
-        if (existingMemberByUsername || existingMemberById)
-            return res
-                .status(200)
-                .json(
-                    new ResponseUni(
-                        [
-                            new ApiError(
-                                "dat-002",
-                                existingMemberByUsername
-                                    ? "That username is taken!"
-                                    : "You've already registered! You can update your profile from the settings menu.",
-                                `The member, ${existingMemberByUsername
-                                    ? `username: ${newMember.username}`
-                                    : `id: ${session.user._id}`
-                                } already exists in the database.`
-                            ),
-                        ],
-                        req.url
-                    )
-                );
-
-        await members.insertOne(newMember);
-
-        return res
-            .status(200)
-            .json(new ResponseUni([], req.url, newMember.username));
-    } catch (err) {
-        console.log(err);
-        res
-            .status(500)
-            .json(
-                new ResponseUni(
-                    [
-                        new ApiError(
-                            "srv-001",
-                            "Internal Server Error",
-                            "Internal Server Error while validating and saving new member data."
-                        ),
-                    ],
-                    req.url
-                )
-            );
-    }
+    //Create member
+    await members.insertOne(newMember);
+    return res
+      .status(200)
+      .json(new ResponseUni([], req.url, newMember.username));
+  } catch (err) {
+    console.log(err);
+    res
+      .status(500)
+      .json(new ResponseUni([ApiError.fromCode("srv-001")], req.url));
+  }
 };
 
 async function validateFormData(
-    body: any
+  body: any
 ): Promise<RegistrationBodyType | string> {
-    //Check data types
-    if (!(typeof body.uname == "string")) return "Username missing!";
-    if (!(typeof body.dname == "string")) return "Full Name missing!";
+  //Check data types
+  if (!(typeof body.uname == "string")) return "Username missing!";
+  if (!(typeof body.dname == "string")) return "Full Name missing!";
 
-    //Check string lengths
-    if (body.uname.length < 2 || body.uname > 24)
-        return "Username must be 2-24 characters";
-    if (body.dname.length < 3 && body.dname.length > 64)
-        return "Display Name must be at least 3 characters";
+  //Check string lengths
+  if (body.uname.length < 2 || body.uname > 24)
+    return "Username must be 2-24 characters";
+  if (body.dname.length < 3 && body.dname.length > 64)
+    return "Display Name must be at least 3 characters";
 
-    const phone = parsePhoneNumber(body.phone);
+  const phone = parsePhoneNumber(body.phone);
 
-    //phone is optional but check if it is valid
-    if (phone && !phone.isValid) return "Phone Number invalid!";
+  //phone is optional but check if it is valid
+  if (phone && !phone.isValid) return "Phone Number invalid!";
 
-    //Create new object to ensure no extra properties are included
-    let data: RegistrationBodyType = {
-        uname: body.uname.toLowerCase(), //All usernames should be lowercase
-        dname: body.dname,
-        phone: phone?.number,
-    };
+  //Create new object to ensure no extra properties are included
+  let data: RegistrationBodyType = {
+    uname: body.uname.toLowerCase(), //All usernames should be lowercase
+    dname: body.dname,
+    phone: phone?.number,
+  };
 
-    return data;
+  return data;
+}
+
+/**
+ * Checks if a member exists in DB based on proposed username and current SessionID
+ *
+ * @param id SessionID
+ * @param username new Member's proposed username
+ * @param members MongoDB "members" collection
+ * @returns boolean
+ */
+async function memberExists(id: string, username: string, members: Collection) {
+  const existingMemberByUsername = await members.findOne({
+    username: username,
+  });
+  const existingMemberById = await members.findOne({ _id: id });
+
+  if (existingMemberById || existingMemberByUsername) return true;
 }

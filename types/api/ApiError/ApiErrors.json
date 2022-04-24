@@ -1,0 +1,45 @@
+{
+  "auth": {
+    "001": {
+      "httpCode": 401,
+      "message": "You must be signed in to access this content.",
+      "detail": "401 Unauthorized - Missing Session"
+    }
+  },
+  "req": {
+    "001": {
+      "httpCode": 405,
+      "message": "405 Invalid Method",
+      "detail": "405 Invalid Method"
+    },
+    "002": {
+      "httpCode": 400,
+      "message": "400 Bad Request",
+      "detail": "400 Bad Request - Invalid or missing URL parameter or query"
+    },
+    "003": {
+      "httpCode": 400,
+      "message": "400 Bad Request",
+      "detail": "400 Bad Request - Invalid or Incomplete Request Body"
+    }
+  },
+  "dat": {
+    "001": {
+      "httpCode": 200,
+      "message": "Item does not exist",
+      "detail": "200 OK - Item does not exist"
+    },
+    "002": {
+      "httpCode": 200,
+      "message": "Item already exists",
+      "detail": "200 OK - Item already exists"
+    }
+  },
+  "srv": {
+    "001": {
+      "httpCode": 500,
+      "message": "Internal Server Error",
+      "detail": "500 Internal Server Error - Generic"
+    }
+  }
+}

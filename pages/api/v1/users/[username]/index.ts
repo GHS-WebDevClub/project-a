@@ -9,19 +9,17 @@
  */
 
 import type { NextApiRequest, NextApiResponse } from "next";
-import {
-  ResponseUni,
-} from "../../../../../types/api/ResponseData.type";
+import { ResponseUni } from "../../../../../types/api/ResponseData.type";
 //import type { UserObject } from "../../../../../types/api/UserObject.type";
 import { getSession } from "next-auth/react";
 import clientPromise from "../../../../../utils/db/connect";
 import Member from "../../../../../types/db/member.type";
-import { ApiError } from "../../../../../types/api/ResponseData.type";
 import {
   PrivateProfile,
   PublicProfile,
 } from "../../../../../types/db/profile.type";
 import checkSessionUsername from "../../../../../utils/api/v1/checkSessionUsername";
+import { ApiError } from "../../../../../types/api/ApiError/ApiError.type";
 
 export type DynMemberProfileType =
   | (PublicProfile & (PrivateProfile | null))
@@ -35,56 +33,22 @@ export default async (
   if (!(await getSession({ req })))
     return res
       .status(401)
-      .json(
-        new ResponseUni(
-          [
-            new ApiError(
-              "auth-001",
-              "You must be signed in to access this content.",
-              "401 Unauthorized - Missing Session"
-            ),
-          ],
-          req.url
-        )
-      );
+      .json(new ResponseUni([ApiError.fromCode("auth-001")], req.url));
 
   //Check Method
   if (!(req.method == "GET"))
     return res
-      .status(404)
-      .json(
-        new ResponseUni(
-          [
-            new ApiError(
-              "req-001",
-              `400 Bad Request`,
-              `400 Bad Request - Invalid Method "${req.method}"`
-            ),
-          ],
-          req.url
-        )
-      );
+      .status(405)
+      .json(new ResponseUni([ApiError.fromCode("req-001")], req.url));
 
+  //Check username from URL param
   const { username } = req.query;
-
-  //Check username from URL
   if (!(typeof username === "string"))
     return res
       .status(400)
-      .json(
-        new ResponseUni(
-          [
-            new ApiError(
-              "req-002",
-              "Invalid API request",
-              "400 Bad Request - Invalid or missing URL parameter"
-            ),
-          ],
-          req.url
-        )
-      );
+      .json(new ResponseUni([ApiError.fromCode("req-002")], req.url));
 
-  //Store if username matches session
+  //Check if username matches session
   const inclPrivProf = await checkSessionUsername(req, username);
 
   //Get member from DB by username
@@ -98,19 +62,7 @@ export default async (
   if (!member)
     return res
       .status(200)
-      .json(
-        new ResponseUni(
-          [
-            new ApiError(
-              "dat-001",
-              `The user ${username} could not be found!`,
-              `200 OK - Item "${username}" does not exist in the Database`
-            ),
-          ],
-          req.url,
-          null
-        )
-      );
+      .json(new ResponseUni([ApiError.fromCode("dat-001")], req.url, null));
 
   //Generate dynamic profile data based on permissions
   const privProf = inclPrivProf ? member.profile.private : {};
