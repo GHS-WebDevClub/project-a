@@ -26,10 +26,10 @@ export class ResponseUni<T> {
   data?: T;
   errors: Array<ApiError>;
   req_id: string;
-  path?: string;
+  path: string | null;
   timestamp: string;
 
-  constructor(errors: Array<ApiError>, path?: string, data?: T) {
+  constructor(errors: Array<ApiError>, path: string | null, data?: T) {
     this.req_id = uuidv4();
     this.data = data;
     this.errors = errors;

@@ -27,25 +27,27 @@ export default async (
   req: NextApiRequest,
   res: NextApiResponse<ResponseUni<string>>
 ) => {
+const url = req.url || null;
+
   //Check session
   const session = await getSession({ req });
   if (!session)
     return res
       .status(401)
-      .json(new ResponseUni([ApiError.fromCode("auth-001")], req.url));
+      .json(new ResponseUni([ApiError.fromCode("auth-001")], url));
 
   //Check Method
   if (!(req.method == "POST"))
     return res
       .status(405)
-      .json(new ResponseUni([ApiError.fromCode("req-001")], req.url));
+      .json(new ResponseUni([ApiError.fromCode("req-001")], url));
 
   const data = await validateFormData(req.body);
 
   if (typeof data == "string")
     return res
       .status(200)
-      .json(new ResponseUni([new ApiError("req-003", data)], req.url));
+      .json(new ResponseUni([new ApiError("req-003", data)], url));
 
   try {
     const newMember = new Member(
@@ -63,18 +65,18 @@ export default async (
     if (await memberExists(session.user._id, newMember.username, members))
       return res
         .status(200)
-        .json(new ResponseUni([ApiError.fromCode("dat-002")], req.url));
+        .json(new ResponseUni([ApiError.fromCode("dat-002")], url));
 
     //Create member
     await members.insertOne(newMember);
     return res
       .status(200)
-      .json(new ResponseUni([], req.url, newMember.username));
+      .json(new ResponseUni([], url, newMember.username));
   } catch (err) {
     console.log(err);
     res
       .status(500)
-      .json(new ResponseUni([ApiError.fromCode("srv-001")], req.url));
+      .json(new ResponseUni([ApiError.fromCode("srv-001")], url));
   }
 };
 

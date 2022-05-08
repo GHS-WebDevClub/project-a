@@ -11,7 +11,8 @@
 import { Db, ObjectId } from "mongodb";
 import { NextApiRequest, NextApiResponse } from "next";
 import { getSession } from "next-auth/react";
-import { ResponseDataT } from "../../../../../../types/api/ResponseData.type";
+import { ApiError } from "../../../../../../types/api/ApiError/ApiError.type";
+import { ResponseDataT, ResponseUni } from "../../../../../../types/api/ResponseData.type";
 import Note, {
   NoteBodyType,
   NoteConstructorType,
@@ -19,31 +20,35 @@ import Note, {
 import checkSessionUsername from "../../../../../../utils/api/v1/checkSessionUsername";
 import clientPromise from "../../../../../../utils/db/connect";
 
+export type MemberNotesResponse = Note[] | string;
+
 export default async function (
   req: NextApiRequest,
-  res: NextApiResponse<ResponseDataT<Array<Note> | ObjectId>>
+  res: NextApiResponse<ResponseUni<MemberNotesResponse>>
 ) {
+  const url = req.url || null;
+
   if (!(req.method == "GET" || req.method == "POST"))
-    return res.status(405).json({ error: "Method not allowed" });
+    return res.status(405).json(new ResponseUni([ApiError.fromCode("req-001")], url));
 
   //Check session
   const session = await getSession({ req });
   if (!session)
     return res
       .status(401)
-      .json({ error: "You must be signed in to access this content." });
+      .json(new ResponseUni([ApiError.fromCode("auth-001")], url));
 
   const db = (await clientPromise).db();
   const { username } = req.query;
 
   if (typeof username !== "string")
-    return res.status(400).json({ error: "Missing username!" });
+    return res.status(400).json(new ResponseUni([ApiError.fromCode("req-002")], url));
 
   if (!(await checkSessionUsername(req, username, db, session)))
     //We can't have this check in production (too many DB requests per one API request), username should be stored in session eventually (WIP)
     return res
       .status(403)
-      .json({ error: "Access to this content is forbidden." });
+      .json(new ResponseUni([ApiError.fromCode("auth-002")], url));
 
   switch (req.method) {
     case "GET":
@@ -52,21 +57,21 @@ export default async function (
       if (!notes)
         res
           .status(500)
-          .json({ error: `Error retrieving ${username}'s notes!` });
+          .json(new ResponseUni([ApiError.fromCode("srv-001")], url));
 
-      res.status(200).json({ result: notes as Array<Note> });
+      res.status(200).json(new ResponseUni([], url, notes as Note[]));
 
       break;
     case "POST":
       if (!req.body)
-        return res.status(400).json({ error: "Malformed request" });
+        return res.status(400).json(new ResponseUni([ApiError.fromCode("req-003")], url));
 
       const note = await createNote(req.body as NoteBodyType, username, db);
 
       if (!note)
-        return res.status(500).json({ error: "Internal Server Error" });
+        return res.status(500).json(new ResponseUni([ApiError.fromCode("srv-001")], url));
 
-      res.status(200).json({ result: note._id });
+      res.status(200).json(new ResponseUni([], url, note._id.toString()));
       break;
   }
 }

@@ -11,54 +11,63 @@ import { DateTime } from "luxon";
 import { Db, ObjectId } from "mongodb";
 import { NextApiRequest, NextApiResponse } from "next";
 import { getSession } from "next-auth/react";
-import { ResponseDataT } from "../../../../../../types/api/ResponseData.type";
+import { ApiError } from "../../../../../../types/api/ApiError/ApiError.type";
+import { ResponseDataT, ResponseUni } from "../../../../../../types/api/ResponseData.type";
 import Note, { NoteBodyType } from "../../../../../../types/db/note.type";
 import checkSessionUsername from "../../../../../../utils/api/v1/checkSessionUsername";
 import clientPromise from "../../../../../../utils/db/connect";
 
+/**
+ * GET & PATCH returns a Note
+ * DELETE return the deleted note's ID
+ */
+export type MemberNoteResponse = Note | string;
+
 export default async function (
   req: NextApiRequest,
-  res: NextApiResponse<ResponseDataT<Note | ObjectId>>
+  res: NextApiResponse<ResponseUni<MemberNoteResponse>>
 ) {
+  const path = req.url || null;
+
   if (!(req.method == "GET" || req.method == "PATCH" || req.method == "DELETE"))
-    return res.status(405).json({ error: "Method not allowed" });
+    return res.status(405).json(new ResponseUni([ApiError.fromCode("req-001")], path));
   //Check session
   const session = await getSession({ req });
   if (!session)
     return res
       .status(401)
-      .json({ error: "You must be signed in to access this content." });
+      .json(new ResponseUni([ApiError.fromCode("auth-001")], path));
 
   const db = (await clientPromise).db();
   const { username, noteId } = req.query;
 
   if (typeof username !== "string" || typeof noteId !== "string")
-    return res.status(400).json({ error: 400 });
+    return res.status(400).json(new ResponseUni([ApiError.fromCode("req-002")], path));
 
   if (!(await checkSessionUsername(req, username, db, session)))
     //We can't have this check in production (too many DB requests per one API request), username should be stored in session eventually (WIP)
     return res
       .status(403)
-      .json({ error: "Access to this content is forbidden." });
+      .json(new ResponseUni([ApiError.fromCode("auth-002")], path));
 
   switch (req.method) {
     case "GET": {
       const note = await getNote(db, noteId);
       if (!note)
-        return res.status(500).json({ error: "Error retrieving note!" });
-      return res.status(200).json({ result: note as Note });
+        return res.status(500).json(new ResponseUni([ApiError.fromCode('srv-001', "Error retrieving note!")], path));
+      return res.status(200).json(new ResponseUni([], path, note as Note));
     }
     case "PATCH": {
       const body = req.body as NoteBodyType;
       const note = await updateNote(db, noteId, body);
-      if (!note) return res.status(500).json({ error: "Error updating note!" });
+      if (!note) return res.status(500).json(new ResponseUni([ApiError.fromCode("srv-001", "Error updating note!")], path));
 
-      return res.status(200).json({ result: note as Note });
+      return res.status(200).json(new ResponseUni([], path, note as Note));
     }
     case "DELETE":
       const note = await deleteNote(db, noteId);
-      if (!note) return res.status(500).json({ error: "Failed to delete note!" })
-      return res.status(200).json({ result: note._id })
+      if (!note) return res.status(500).json(new ResponseUni([ApiError.fromCode("srv-001", "Error deleting note!")], path))
+      return res.status(200).json(new ResponseUni([], path, note._id.toString()));
   }
 }
 

@@ -7,32 +7,40 @@
 
 import { NextApiRequest, NextApiResponse } from "next";
 import { getSession } from "next-auth/react";
-import { ResponseDataT } from "../../../../../../types/api/ResponseData.type";
+import { ApiError } from "../../../../../../types/api/ApiError/ApiError.type";
+import { ResponseUni } from "../../../../../../types/api/ResponseData.type";
 import clientPromise from "../../../../../../utils/db/connect";
+
+/**
+ * Update setting slug
+ */
+export type UpdateSettingResponse = string;
 
 export default async (
   req: NextApiRequest,
-  res: NextApiResponse<ResponseDataT<string>>
+  res: NextApiResponse<ResponseUni<UpdateSettingResponse>>
 ) => {
+  const url = req.url || null;
+
   if (!(req.method == "PUT"))
-    return res.status(405).json({ error: "Method not allowed" });
+    return res.status(405).json(new ResponseUni([ApiError.fromCode("req-001")], url));
 
   const session = await getSession({ req });
   if (!session)
     return res
       .status(401)
-      .json({ error: "You must be signed in to access this content." });
+      .json(new ResponseUni([ApiError.fromCode("auth-001")], url));
 
   const { username, slug } = req.query;
 
   if (typeof username !== "string" || typeof slug !== "string" || req.body == null)
-    return res.status(400).json({ error: 400 });
+    return res.status(400).json(new ResponseUni([ApiError.fromCode("req-002")], url));
 
   const member = await updateSetting(slug, req.body, username)
 
-  if (!member) return res.status(500).json({ error: "Failed to update member!" })
+  if (!member) return res.status(500).json(new ResponseUni([ApiError.fromCode("srv-001")], url))
 
-  return res.status(200).json({ result: member._id.toString() })
+  return res.status(200).json(new ResponseUni([], url, slug));
 };
 
 //TODO: data validation
@@ -46,14 +54,15 @@ async function updateSetting(key: string, value: any, username: string) {
   }
 }
 
-async function updateMember(username: string, data: Object) {
+async function updateMember(username: string, data: Object): Promise<boolean> {
   try {
     const db = (await clientPromise).db();
 
-    const member = (await db.collection("members").findOneAndUpdate({ username: username }, { $set: data }, { returnDocument: "after" })).value
+    const ok = (await db.collection("members").findOneAndUpdate({ username: username }, { $set: data }, { returnDocument: "after" })).ok
 
-    return member;
+    return ok == 1 ? true : false;
   } catch (err) {
+    console.log(err);
     return false;
   }
 }

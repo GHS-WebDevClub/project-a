@@ -4,6 +4,11 @@
       "httpCode": 401,
       "message": "You must be signed in to access this content.",
       "detail": "401 Unauthorized - Missing Session"
+    },
+    "002": {
+      "httpCode": 403,
+      "message": "You are not allowed to access this content.",
+      "detail": "Session is not permitted to access the requested content."
     }
   },
   "req": {

@@ -16,37 +16,41 @@ import clientPromise from "../../../../../utils/db/connect";
 import Member from "../../../../../types/db/member.type";
 import {
   PrivateProfile,
+  ProfileType,
   PublicProfile,
 } from "../../../../../types/db/profile.type";
 import checkSessionUsername from "../../../../../utils/api/v1/checkSessionUsername";
 import { ApiError } from "../../../../../types/api/ApiError/ApiError.type";
 
-export type DynMemberProfileType =
-  | (PublicProfile & (PrivateProfile | null))
-  | null;
+export type DynMemberProfileType = {
+  public: ProfileType["public"];
+  private?: ProfileType["private"];
+} | null;
 
 export default async (
   req: NextApiRequest,
   res: NextApiResponse<ResponseUni<DynMemberProfileType>>
 ) => {
+  const url = req.url || null;
+
   //Check session
   if (!(await getSession({ req })))
     return res
       .status(401)
-      .json(new ResponseUni([ApiError.fromCode("auth-001")], req.url));
+      .json(new ResponseUni([ApiError.fromCode("auth-001")], url));
 
   //Check Method
   if (!(req.method == "GET"))
     return res
       .status(405)
-      .json(new ResponseUni([ApiError.fromCode("req-001")], req.url));
+      .json(new ResponseUni([ApiError.fromCode("req-001")], url));
 
   //Check username from URL param
   const { username } = req.query;
   if (!(typeof username === "string"))
     return res
       .status(400)
-      .json(new ResponseUni([ApiError.fromCode("req-002")], req.url));
+      .json(new ResponseUni([ApiError.fromCode("req-002")], url));
 
   //Check if username matches session
   const inclPrivProf = await checkSessionUsername(req, username);
@@ -62,11 +66,11 @@ export default async (
   if (!member)
     return res
       .status(200)
-      .json(new ResponseUni([ApiError.fromCode("dat-001")], req.url, null));
+      .json(new ResponseUni([ApiError.fromCode("dat-001")], url, null));
 
   //Generate dynamic profile data based on permissions
   const privProf = inclPrivProf ? member.profile.private : {};
-  const dynMemberProf = { ...member.profile.public, ...privProf };
+  const dynMemberProf: DynMemberProfileType = { public: { ...member.profile.public }, ...privProf };
 
-  return res.status(200).json(new ResponseUni([], req.url, dynMemberProf));
+  return res.status(200).json(new ResponseUni([], url, dynMemberProf));
 };
