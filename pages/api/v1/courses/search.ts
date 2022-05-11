@@ -16,32 +16,36 @@ import { Teacher } from "../../../../types/db/teacher.type";
 import apiLogger, { ApiMsg } from "../../../../utils/api/Logger";
 import clientPromise from "../../../../utils/db/connect";
 
+export type CourseSearchResult = Array<SearchCourseResultType>
+
 export default async function Search(
   req: NextApiRequest,
-  res: NextApiResponse<ResponseUni<Array<SearchCourseResultType>>>
+  res: NextApiResponse<ResponseUni<CourseSearchResult>>
 ) {
+  const url = req.url || null;
+
   //Check Method
   if (req.method !== "GET")
     return res
       .status(405)
-      .json(new ResponseUni([ApiError.fromCode("req-001")], req.url));
+      .json(new ResponseUni([ApiError.fromCode("req-001")], url));
 
   //Check search query
   const { q } = req.query;
   if (typeof q !== "string")
     return res
       .status(400)
-      .json(new ResponseUni([ApiError.fromCode("req-002")], req.url));
+      .json(new ResponseUni([ApiError.fromCode("req-002")], url));
 
   //Check search results
   const searchResults = await getCourses(q);
   if (!searchResults)
     return res
       .status(500)
-      .json(new ResponseUni([ApiError.fromCode("srv-001")], req.url));
+      .json(new ResponseUni([ApiError.fromCode("srv-001")], url));
 
   //Send results
-  return res.status(200).json(new ResponseUni([], req.url, searchResults));
+  return res.status(200).json(new ResponseUni([], url, searchResults));
 }
 
 async function getCourses(
@@ -89,6 +93,6 @@ async function getTeacherName(
     const teacher = await coll.findOne({
       _id: new ObjectId(course.teachers[0]),
     });
-    return (teacher as Teacher)?.profile.displayName;
+    return (teacher as Teacher)?.profile.public.displayName;
   } else return;
 }
