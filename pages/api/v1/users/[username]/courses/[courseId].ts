@@ -10,7 +10,6 @@ import { NextApiRequest, NextApiResponse } from "next";
 import { getSession } from "next-auth/react";
 import { ApiError } from "../../../../../../types/api/ApiError/ApiError.type";
 import {
-    ResponseDataT,
     ResponseUni,
 } from "../../../../../../types/api/ResponseData.type";
 import checkSessionUsername from "../../../../../../utils/api/v1/checkSessionUsername";

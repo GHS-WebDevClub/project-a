@@ -4,7 +4,7 @@
  * Created by Aubin C. Spitzer (@aubincspitzer) on 03/08/2022
  */
 
-import { Collection, Db, ObjectId } from "mongodb";
+import { Db } from "mongodb";
 import { NextApiRequest } from "next";
 import { Session } from "next-auth";
 import { getSession } from "next-auth/react";
